@@ -1,3 +1,5 @@
+import math
+import random
 import pygame
 
 # game settings
@@ -57,14 +59,63 @@ class Actor:
         self.position = Vector2(SCREEN_WIDTH / 2 - self.texture.get_rect().width / 2,
                                 SCREEN_HEIGHT / 2 - self.texture.get_rect(). height / 2)
 
+class Ball(Actor):
+    def move(self, amount):
+        Actor.move(self, amount)
+
+        if self.position.y < 0:
+            self.velocity.y = math.fabs(self.velocity.y)
+        elif self.position.y > SCREEN_HEIGHT - self.get_bounds().height:
+            self.velocity.y = -math.fabs(self.velocity.y)
+
+        if self.get_bounds().right < 0:
+            self.launch(BALL_SPEED)
+        elif self.position.x > SCREEN_WIDTH:
+            self.launch(BALL_SPEED)
+
+    def launch(self, speed):
+        self.center_xy()
+        var = random.uniform(-1, 1)
+
+        angle = math.pi / 2 + var
+        if random.randint(0, 1):
+            angle += math.pi
+
+        self.velocity.x = math.sin(angle)
+        self.velocity.y = math.cos(angle)
+
+        self.velocity * speed
+
+class Player(Actor):
+    score = 0
+
+    def move(self, amount):
+        Actor.move(self, amount)
+        if self.position.y < 0:
+            self.position.y = 0
+        elif self.position.y > SCREEN_HEIGHT - self.texture.get_rect().height:
+            self.position.y = SCREEN_HEIGHT - self.texture.get_rect().height
+
 # functions
 def update(elapsedTime):
-    timeFactor = elapsedTime * 0.05
+    timeFactor = elapsedTime * 0.3
+
+    keys = pygame.key.get_pressed()
+
+    if keys(pygame.K_w):
+        player1.velocity.y = -PADDLE_SPEED
+
     ball.move(ball.velocity * timeFactor)
+    player1.move(player1.velocity * timeFactor)
+    player2.move(player2.velocity * timeFactor)
 
 def draw():
     screen.fill(COLOR_BLACK)
+
     screen.blit(ball.texture, ball.get_bounds())
+    screen.blit(player1.texture, player1.get_bounds())
+    screen.blit(player2.texture, player2.get_bounds())
+
     pygame.display.flip()
 
 # initialization
@@ -72,12 +123,22 @@ pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # textures
-ballTexture = pygame.image.load("chibi_willem.png")
-playerTexture = pygame.image.load("chibi_isabelle.png")
+ballTexture = pygame.image.load("ball.png")
+ballTexture = pygame.transform.scale(ballTexture, (20,20))
+playerTexture = pygame.image.load("paddle.png")
+playerTexture = pygame.transform.scale(playerTexture, (15,80))
 
 # game objects
-ball = Actor(ballTexture)
-ball.velocity = Vector2(1, 2)
+ball = Ball(ballTexture)
+ball.launch(BALL_SPEED)
+
+player1 = Player(playerTexture)
+player1.position.x = PADDLE_OFFSET
+player1.center_y()
+
+player2 = Player(playerTexture)
+player2.position.x = SCREEN_WIDTH - player2.get_bounds().width -PADDLE_OFFSET
+player2.center_y()
 
 # loop control and timing
 gameover = False
