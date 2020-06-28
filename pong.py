@@ -10,7 +10,7 @@ COLOR_BLACK = 0, 0, 0
 COLOR_GREEN = 166, 206, 57
 
 TEXT_PADDING = 25
-PADDLE_SPEED = 5
+PADDLE_SPEED = 3
 PADDLE_OFFSET = 10
 BALL_SPEED = 3
 SPIN_PERCENT = 0.5
@@ -98,16 +98,31 @@ class Player(Actor):
 
 # functions
 def update(elapsedTime):
-    timeFactor = elapsedTime * 0.3
+    timeFactor = elapsedTime * 0.5
+
+    player1.velocity.set_zero()
+    player2.velocity.set_zero()
 
     keys = pygame.key.get_pressed()
 
-    if keys(pygame.K_w):
-        player1.velocity.y = -PADDLE_SPEED
+    if keys[pygame.K_w]:
+        player1.velocity.y -= PADDLE_SPEED
+    elif keys[pygame.K_s]:
+        player1.velocity.y += PADDLE_SPEED
+
+    if keys[pygame.K_UP]:
+        player2.velocity.y = -PADDLE_SPEED
+    elif keys[pygame.K_DOWN]:
+        player2.velocity.y = PADDLE_SPEED
 
     ball.move(ball.velocity * timeFactor)
     player1.move(player1.velocity * timeFactor)
     player2.move(player2.velocity * timeFactor)
+
+    if pygame.Rect.colliderect(ball.get_bounds(), player1.get_bounds()):
+        ball.velocity.x = math.fabs(ball.velocity.x)
+    if pygame.Rect.colliderect(ball.get_bounds(), player2.get_bounds()):
+        ball.velocity.x = -math.fabs(ball.velocity.x)
 
 def draw():
     screen.fill(COLOR_BLACK)
