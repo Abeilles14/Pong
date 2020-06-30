@@ -1,3 +1,7 @@
+"""
+A quick Python Pong game to learn simple game logic and familiarize with Python syntax
+"""
+
 import math
 import random
 import pygame
